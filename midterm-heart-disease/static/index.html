@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heart disease screening</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c1917;
+      --muted: #57534e;
+      --line: #e7e5e4;
+      --paper: #fafaf9;
+      --card: #ffffff;
+      --accent: #9f1239;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Iowan Old Style", serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+    h1 { font-size: 2rem; margin: 0 0 8px; }
+    p { color: var(--muted); line-height: 1.5; }
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+    label { display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; }
+    label span { color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; }
+    input, select, button {
+      font: inherit;
+      padding: 8px 10px;
+      border: 1px solid #d6d3d1;
+      background: white;
+      color: var(--ink);
+    }
+    .actions { grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; }
+    button {
+      background: var(--ink);
+      color: white;
+      border: 0;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    #result {
+      grid-column: 1 / -1;
+      min-height: 1.4em;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    #result strong { color: var(--accent); }
+    @media (max-width: 640px) {
+      form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Heart disease screening</h1>
+    <p>
+      Enter the measurements from a clinic visit. The score is the model's
+      estimated probability of heart disease. A doctor still makes the decision.
+      A cholesterol or blood pressure of 0 is treated as missing.
+    </p>
+    <form id="screen">
+      <label>Age <span>years</span>
+        <input name="age" type="number" min="1" max="120" value="49" required>
+      </label>
+      <label>Sex
+        <select name="sex">
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+        </select>
+      </label>
+      <label>Chest pain
+        <select name="chestpaintype">
+          <option value="ASY">Asymptomatic</option>
+          <option value="ATA">Atypical angina</option>
+          <option value="NAP">Non-anginal pain</option>
+          <option value="TA">Typical angina</option>
+        </select>
+      </label>
+      <label>Resting blood pressure <span>mm Hg</span>
+        <input name="restingbp" type="number" min="0" max="250" value="140" required>
+      </label>
+      <label>Cholesterol <span>mm/dl, 0 if not measured</span>
+        <input name="cholesterol" type="number" min="0" max="700" value="234" required>
+      </label>
+      <label>Fasting blood sugar
+        <select name="fastingbs">
+          <option value="0">Not above 120 mg/dl</option>
+          <option value="1">Above 120 mg/dl</option>
+        </select>
+      </label>
+      <label>Resting ECG
+        <select name="restingecg">
+          <option value="Normal">Normal</option>
+          <option value="ST">ST-T abnormality</option>
+          <option value="LVH">Left ventricular hypertrophy</option>
+        </select>
+      </label>
+      <label>Max heart rate
+        <input name="maxhr" type="number" min="1" max="250" value="140" required>
+      </label>
+      <label>Exercise-induced angina
+        <select name="exerciseangina">
+          <option value="Y">Yes</option>
+          <option value="N">No</option>
+        </select>
+      </label>
+      <label>Oldpeak <span>ST depression</span>
+        <input name="oldpeak" type="number" min="-3" max="10" step="0.1" value="1" required>
+      </label>
+      <label>ST slope
+        <select name="st_slope">
+          <option value="Flat">Flat</option>
+          <option value="Up">Upsloping</option>
+          <option value="Down">Downsloping</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button type="submit">Score this patient</button>
+        <div id="result" role="status" aria-live="polite"></div>
+      </div>
+    </form>
+  </main>
+  <script>
+    const form = document.querySelector("#screen");
+    const result = document.querySelector("#result");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      data.age = Number(data.age);
+      data.restingbp = Number(data.restingbp);
+      data.cholesterol = Number(data.cholesterol);
+      data.fastingbs = Number(data.fastingbs);
+      data.maxhr = Number(data.maxhr);
+      data.oldpeak = Number(data.oldpeak);
+
+      result.textContent = "Scoring…";
+      const response = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        result.textContent = "The service could not score this patient.";
+        return;
+      }
+      const body = await response.json();
+      const percent = Math.round(body.heart_disease_probability * 100);
+      const action = body.heart_disease ? "Refer for follow-up." : "Routine visit.";
+      result.innerHTML = `<strong>${percent}%</strong> estimated probability. ${action}`;
+    });
+  </script>
+</body>
+</html>

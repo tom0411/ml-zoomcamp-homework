@@ -1,0 +1,6 @@
+notebook.ipynb
+heart.csv
+train.py
+__pycache__
+*.pyc
+.git
