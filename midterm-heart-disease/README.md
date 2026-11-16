@@ -73,33 +73,3 @@ curl -X POST http://localhost:9696/predict \
 ```
 
 Allowed categories: sex `M`/`F`; chest pain `ASY`/`ATA`/`NAP`/`TA`; fasting blood sugar `0`/`1`; resting ECG `Normal`/`ST`/`LVH`; exercise angina `Y`/`N`; ST slope `Flat`/`Up`/`Down`.
-
-## Cloud
-
-The same Dockerfile is deployed on AWS Elastic Beanstalk in `ap-southeast-1` as a single `t3.small` instance (no load balancer).
-
-http://heart-disease-mlz.ap-southeast-1.elasticbeanstalk.com/
-
-From this folder, with the AWS CLI profile `eb-cli` configured:
-
-```bash
-eb init heart-disease \
-  -p "64bit Amazon Linux 2023 v4.14.3 running Docker" \
-  -r ap-southeast-1 \
-  --profile eb-cli
-
-eb create heart-disease-env \
-  -c heart-disease-mlz \
-  --single \
-  -i t3.small \
-  --profile eb-cli
-```
-
-`eb create` uploads this folder (excluding the notebook, `heart.csv`, and `train.py` via `.ebignore`). The instance builds the image from the Dockerfile. Stop the instance when you are finished so it does not keep billing:
-
-```bash
-aws elasticbeanstalk terminate-environment \
-  --environment-name heart-disease-env \
-  --region ap-southeast-1 \
-  --profile eb-cli
-```
