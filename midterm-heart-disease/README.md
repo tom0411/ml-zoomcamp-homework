@@ -1,5 +1,9 @@
 # Heart disease screening
 
+Deployed on AWS Elastic Beanstalk in `ap-southeast-1`:
+
+http://heart-disease-mlz.ap-southeast-1.elasticbeanstalk.com/
+
 A clinic collects a short set of measurements at a visit: age, sex, chest pain type, resting blood pressure, cholesterol, fasting blood sugar, resting ECG, maximum heart rate, exercise-induced angina, oldpeak, and ST slope. This project estimates the probability that the patient has heart disease.
 
 The score is a screening aid. A probability of 0.5 or higher means "refer for follow-up." A doctor still makes the diagnosis. The service is a form at `GET /` and a JSON API at `POST /predict`.
