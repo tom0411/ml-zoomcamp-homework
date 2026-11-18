@@ -55,7 +55,7 @@ Open http://localhost:9696/.
 `POST /predict` takes one patient. Text fields are lowercased. A resting blood pressure or cholesterol of 0 is replaced with the median saved in `model.bin`.
 
 ```bash
-curl -X POST http://localhost:9696/predict \
+curl -X POST http://heart-disease-mlz.ap-southeast-1.elasticbeanstalk.com/predict \
   -H 'Content-Type: application/json' \
   -d '{
     "age": 58,
